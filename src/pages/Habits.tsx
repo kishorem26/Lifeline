@@ -112,27 +112,28 @@ export default function Habits() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label">Habits · Monthly view</p>
-          <h1 className="mt-1.5 text-3xl font-extrabold tracking-tight sm:text-4xl">Be 1% better every day</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isThisMonth && (
-            <button type="button" onClick={() => setMonth(startOfMonth(new Date()))} className="h-11 rounded-xl border border-line bg-white/[0.04] px-4 text-sm font-bold hover:bg-white/[0.08]">
-              Today
-            </button>
-          )}
-          <div className="flex items-center gap-1 rounded-[18px] border border-line bg-white/[0.04] p-1.5">
-            <button type="button" aria-label="Previous month" onClick={() => setMonth((m) => addMonths(m, -1))} className="grid h-10 w-10 place-items-center rounded-xl hover:bg-white/10">
+      <header className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="label">Habits · Monthly view</p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-4xl">Be 1% better every day</h1>
+          </div>
+          {/* Month navigator */}
+          <div className="flex items-center gap-1 rounded-[18px] border border-line bg-white/[0.04] p-1">
+            <button type="button" aria-label="Previous month" onClick={() => setMonth((m) => addMonths(m, -1))} className="grid h-10 w-10 place-items-center rounded-xl active:bg-white/10">
               <ChevronLeft size={18} />
             </button>
-            <div className="min-w-[140px] text-center text-base font-extrabold">{format(month, 'MMMM yyyy')}</div>
-            <button type="button" aria-label="Next month" onClick={() => setMonth((m) => addMonths(m, 1))} className="grid h-10 w-10 place-items-center rounded-xl hover:bg-white/10">
+            <div className="w-[110px] text-center text-sm font-extrabold sm:w-[140px] sm:text-base">{format(month, 'MMM yyyy')}</div>
+            <button type="button" aria-label="Next month" onClick={() => setMonth((m) => addMonths(m, 1))} className="grid h-10 w-10 place-items-center rounded-xl active:bg-white/10">
               <ChevronRight size={18} />
             </button>
           </div>
         </div>
+        {!isThisMonth && (
+          <button type="button" onClick={() => setMonth(startOfMonth(new Date()))} className="h-10 w-full rounded-xl border border-line bg-white/[0.04] text-sm font-bold active:bg-white/[0.08] sm:w-auto sm:px-4">
+            Back to this month
+          </button>
+        )}
       </header>
 
       <section className="grid gap-4 lg:grid-cols-3">
@@ -188,13 +189,13 @@ export default function Habits() {
         ].map((s) => (
           <div
             key={s.label}
-            className="rounded-3xl border border-white/[0.08] p-5"
+            className="rounded-3xl border border-white/[0.08] p-4 sm:p-5"
             style={{ background: `linear-gradient(180deg, #0d0e10 0%, color-mix(in srgb, ${s.color} 36%, #0d0e10) 100%)` }}
           >
             <p className="label !text-white/60">{s.label}</p>
-            <p className="mt-2 text-[34px] font-extrabold leading-none tracking-tight">
+            <p className="mt-2 text-[26px] font-extrabold leading-none tracking-tight sm:text-[34px]">
               {s.value}
-              <span className="ml-1.5 text-[15px] font-semibold text-white/55">{s.unit}</span>
+              <span className="ml-1 text-[13px] font-semibold text-white/55 sm:ml-1.5 sm:text-[15px]">{s.unit}</span>
             </p>
           </div>
         ))}
@@ -217,16 +218,21 @@ export default function Habits() {
         </div>
 
         {/* Add habit */}
-        <form onSubmit={submit} className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-white/[0.03] p-3">
-          <input
-            value={name}
-            maxLength={40}
-            onChange={(e) => { setName(e.target.value); setError('') }}
-            placeholder="New habit, e.g. Cold shower"
-            aria-label="New habit name"
-            className="h-11 min-w-[200px] flex-1 rounded-xl border border-line bg-white/[0.05] px-4 text-sm font-semibold outline-none placeholder:text-muted focus:border-lime"
-          />
-          <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Habit color">
+        <form onSubmit={submit} className="space-y-3 rounded-2xl border border-line bg-white/[0.03] p-3">
+          <div className="flex gap-2">
+            <input
+              value={name}
+              maxLength={40}
+              onChange={(e) => { setName(e.target.value); setError('') }}
+              placeholder="New habit, e.g. Cold shower"
+              aria-label="New habit name"
+              className="h-12 flex-1 rounded-xl border border-line bg-white/[0.05] px-4 text-sm font-semibold outline-none placeholder:text-muted focus:border-lime"
+            />
+            <button type="submit" className="flex h-12 shrink-0 items-center gap-2 rounded-xl bg-lime px-4 text-sm font-extrabold text-black active:scale-95">
+              <Plus size={16} strokeWidth={2.8} /> Add
+            </button>
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5" role="radiogroup" aria-label="Habit color">
             {HABIT_COLORS.map((c) => (
               <button
                 key={c.hex}
@@ -235,15 +241,12 @@ export default function Habits() {
                 aria-checked={color === c.hex}
                 aria-label={c.name}
                 onClick={() => setColor(c.hex)}
-                className={cn('h-7 w-7 rounded-full transition', color === c.hex && 'ring-2 ring-white ring-offset-2 ring-offset-surface')}
+                className={cn('h-8 w-8 shrink-0 rounded-full transition active:scale-90', color === c.hex && 'ring-2 ring-white ring-offset-2 ring-offset-surface')}
                 style={{ background: c.hex }}
               />
             ))}
           </div>
-          <button type="submit" className="flex h-11 items-center gap-2 rounded-xl bg-lime px-5 text-sm font-extrabold text-black transition active:scale-95">
-            <Plus size={16} strokeWidth={2.8} /> Add habit
-          </button>
-          {error && <p role="alert" className="basis-full text-[13px] font-semibold text-workout">{error}</p>}
+          {error && <p role="alert" className="text-[13px] font-semibold text-workout">{error}</p>}
         </form>
 
         {habits.length === 0 ? (
@@ -325,18 +328,18 @@ export default function Habits() {
         {top.length === 0 ? (
           <p className="text-sm text-muted">Mark a few days and your best habits will show up here.</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
             {top.map((t) => (
               <div
                 key={t.habit.id}
-                className="rounded-[22px] border border-white/[0.08] p-5"
+                className="rounded-[22px] border border-white/[0.08] p-4 sm:p-5"
                 style={{ background: `linear-gradient(180deg, #0d0e10 0%, color-mix(in srgb, ${t.habit.color} 28%, #0d0e10) 100%)` }}
               >
-                <div className="flex items-center justify-between text-base font-bold">
+                <div className="flex items-center justify-between text-sm font-bold sm:text-base">
                   <span className="truncate">{t.habit.name}</span>
-                  <span>{t.pct}%</span>
+                  <span className="ml-2 shrink-0">{t.pct}%</span>
                 </div>
-                <div className="mt-3.5 h-2.5 overflow-hidden rounded-full bg-white/[0.09]">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.09] sm:h-2.5 sm:mt-3.5">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${t.pct}%`, background: t.habit.color }} />
                 </div>
               </div>

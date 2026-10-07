@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { User, Calendar, Mail, Phone, UserCircle, Activity } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
@@ -19,6 +19,45 @@ export default function Profile() {
   
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latestFormData = useRef(formData)
+
+  // Keep ref in sync so beforeunload always has the latest data
+  useEffect(() => {
+    latestFormData.current = formData
+  }, [formData])
+
+  const persistNow = useCallback((data: typeof formData) => {
+    localStorage.setItem('lifeline_profile', JSON.stringify(data))
+  }, [])
+
+  // Auto-save with 600ms debounce on every field change
+  useEffect(() => {
+    setIsSaved(false)
+    setIsSaving(true)
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      persistNow(formData)
+      setIsSaving(false)
+      setIsSaved(true)
+      const clearTimer = setTimeout(() => setIsSaved(false), 2500)
+      return () => clearTimeout(clearTimer)
+    }, 600)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [formData, persistNow])
+
+  // Safety net: flush immediately if the tab/window is closed
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      persistNow(latestFormData.current)
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [persistNow])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -27,16 +66,11 @@ export default function Profile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSaving(true)
-    
-    // Simulate network delay
-    setTimeout(() => {
-      localStorage.setItem('lifeline_profile', JSON.stringify(formData))
-      setIsSaving(false)
-      setIsSaved(true)
-      
-      setTimeout(() => setIsSaved(false), 3000)
-    }, 600)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    persistNow(formData)
+    setIsSaving(false)
+    setIsSaved(true)
+    setTimeout(() => setIsSaved(false), 2500)
   }
 
   let targetProtein = 0
@@ -215,36 +249,31 @@ export default function Profile() {
             />
           </div>
 
-          <div className="flex justify-end pt-6 border-t border-line mt-8 gap-4">
-            <button
-              type="button"
-              className="px-6 py-3 rounded-xl font-semibold text-muted hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className={cn(
-                "px-8 py-3 rounded-xl font-semibold transition-all relative flex items-center justify-center min-w-[160px]",
-                isSaved 
-                  ? "bg-steps text-white" 
-                  : "bg-lime text-black hover:bg-[#d4ff4d] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(198,244,50,0.15)] hover:shadow-[0_0_25px_rgba(198,244,50,0.3)]",
-                isSaving && "opacity-80 cursor-not-allowed scale-100"
-              )}
-            >
+          <div className="flex items-center justify-between pt-6 border-t border-line mt-8">
+            {/* Auto-save status */}
+            <div className="flex items-center gap-2 text-sm">
               {isSaving ? (
-                <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                <>
+                  <div className="h-3.5 w-3.5 border-2 border-muted border-t-transparent rounded-full animate-spin" />
+                  <span className="text-muted">Saving…</span>
+                </>
               ) : isSaved ? (
-                <span className="flex items-center gap-2">
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <>
+                  <svg className="h-4 w-4 text-lime" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
                   </svg>
-                  Saved!
-                </span>
+                  <span className="text-lime font-medium">Auto-saved</span>
+                </>
               ) : (
-                "Save Changes"
+                <span className="text-muted/50 text-xs">Changes save automatically</span>
               )}
+            </div>
+
+            <button
+              type="submit"
+              className="px-8 py-3 rounded-xl font-semibold transition-all relative flex items-center justify-center min-w-[140px] bg-lime text-black hover:bg-[#d4ff4d] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(198,244,50,0.15)] hover:shadow-[0_0_25px_rgba(198,244,50,0.3)]"
+            >
+              Save Now
             </button>
           </div>
         </form>
