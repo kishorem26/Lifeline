@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { User, Calendar, Mail, Phone, UserCircle, Activity } from 'lucide-react'
-import { cn } from '@/lib/cn'
 
 export default function Profile() {
   const [formData, setFormData] = useState(() => {
@@ -61,7 +60,7 @@ export default function Profile() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev: typeof formData) => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {

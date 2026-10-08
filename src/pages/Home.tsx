@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Footprints, Droplets, Moon, Dumbbell, BookOpen, Leaf, Egg, Zap, GraduationCap,
-  Plus, UtensilsCrossed, Scale, Check, NotebookPen, Laugh, Smile, Meh, Frown, Angry,
+  Plus, UtensilsCrossed, Check, Laugh, Smile, Meh, Frown, Angry,
 } from 'lucide-react'
 import { format, startOfWeek, addDays, isToday } from 'date-fns'
 import { ProgressRing } from '@/components/ui/ProgressRing'
@@ -57,14 +57,14 @@ export default function Home() {
   }
 
   const metrics = useMetricsStore()
-  
-  const [profile, setProfile] = useState<any>(() => {
+
+  const profile = (() => {
     try {
       const saved = localStorage.getItem('lifeline_profile')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {}
+      if (saved) return JSON.parse(saved) as Record<string, string>
+    } catch { /* ignore */ }
     return null
-  })
+  })()
 
   const name = profile?.name || ''
   
