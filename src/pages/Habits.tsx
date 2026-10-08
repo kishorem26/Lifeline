@@ -9,6 +9,7 @@ import { ProgressRing } from '@/components/ui/ProgressRing'
 import { HABIT_COLORS, dateKey, useHabitStore, type Mark } from '@/lib/habit-store'
 import { bestStreak, currentStreak, monthStats, trackingStart } from '@/lib/habit-stats'
 import { cn } from '@/lib/cn'
+import { ColorWheel } from '@/components/ui/ColorWheel'
 
 const WEEK_COLORS = ['#22b8e6', '#7ed30f', '#ff3d8b', '#ffb020', '#9a5cff', '#2f7bff']
 const nameSchema = z.string().trim().min(1, 'Give your habit a name.').max(40, 'Keep it under 40 characters.')
@@ -232,19 +233,21 @@ export default function Habits() {
               <Plus size={16} strokeWidth={2.8} /> Add
             </button>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-0.5" role="radiogroup" aria-label="Habit color">
-            {HABIT_COLORS.map((c) => (
-              <button
-                key={c.hex}
-                type="button"
-                role="radio"
-                aria-checked={color === c.hex}
-                aria-label={c.name}
-                onClick={() => setColor(c.hex)}
-                className={cn('h-8 w-8 shrink-0 rounded-full transition active:scale-90', color === c.hex && 'ring-2 ring-white ring-offset-2 ring-offset-surface')}
-                style={{ background: c.hex }}
-              />
-            ))}
+          <div className="flex flex-wrap items-center gap-6 py-2 px-1">
+            <ColorWheel 
+              color={color} 
+              onChange={setColor} 
+              className="w-24 h-24 shrink-0" 
+            />
+            <div className="flex flex-col gap-3">
+              <span className="text-xs font-bold tracking-wide text-muted uppercase">Selected Color</span>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="h-10 w-10 rounded-full shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] ring-2 ring-white/10" 
+                  style={{ background: color }} 
+                />
+              </div>
+            </div>
           </div>
           {error && <p role="alert" className="text-[13px] font-semibold text-workout">{error}</p>}
         </form>
@@ -268,7 +271,7 @@ export default function Habits() {
               }}
             >
               {/* Week headers */}
-              <div className="sticky left-0 z-10 bg-surface" />
+              <div className="sticky left-0 z-10" style={{ background: "var(--color-surface)" }} />
               {weeks.map((w, i) => (
                 <div
                   key={i}
@@ -281,7 +284,7 @@ export default function Habits() {
               <div />
 
               {/* Day headers: real weekday + date */}
-              <div className="sticky left-0 z-10 bg-surface text-xs font-bold text-muted">Habit</div>
+              <div className="sticky left-0 z-10 text-xs font-bold text-muted" style={{ background: "var(--color-surface)" }}>Habit</div>
               {days.map((d) => {
                 const isToday = isSameDay(d, today)
                 const weekend = d.getDay() === 0 || d.getDay() === 6
@@ -369,7 +372,7 @@ interface RowProps {
 function HabitRow({ h, pct, streak, days, today, editing, mark, onCycle, onRecolor, confirming, onAskDelete, onDelete }: RowProps) {
   return (
     <>
-      <div className="sticky left-0 z-10 flex items-center gap-2 bg-surface pr-2">
+      <div className="sticky left-0 z-10 flex items-center gap-2 pr-2" style={{ background: "var(--color-surface)" }}>
         {editing ? (
           <>
             <button type="button" aria-label={`Change color of ${h.name}`} onClick={onRecolor} className="h-5 w-5 shrink-0 rounded-md" style={{ background: h.color }} />

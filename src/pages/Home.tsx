@@ -1,4 +1,4 @@
-import { useState } from 'react'
+
 import {
   Footprints, Droplets, Moon, Dumbbell, BookOpen, Leaf, Egg, Zap, GraduationCap,
   Plus, UtensilsCrossed, Check, Laugh, Smile, Meh, Frown, Angry,
@@ -11,6 +11,7 @@ import type { BarVariant } from '@/components/ui/ProgressBar'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useMetricsStore } from '@/lib/metrics-store'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 const MOODS = [
   { icon: Laugh, label: 'Great' },
@@ -44,27 +45,23 @@ interface CardData {
 
 export default function Home() {
   const todayKey = format(new Date(), 'yyyy-MM-dd')
-  const [mood, setMood] = useState<number | null>(() => {
-    try {
-      const saved = localStorage.getItem(`lifeline_mood_${todayKey}`)
-      return saved !== null ? Number(saved) : 1
-    } catch { return 1 }
-  })
+  
+  const [mood, setMood] = useLocalStorage<number | null>(`lifeline_mood_${todayKey}`, null)
 
-  const handleMood = (i: number) => {
-    setMood(i)
-    try { localStorage.setItem(`lifeline_mood_${todayKey}`, String(i)) } catch {}
-  }
+  const handleMood = (i: number) => setMood(i)
 
   const metrics = useMetricsStore()
 
-  const profile = (() => {
-    try {
-      const saved = localStorage.getItem('lifeline_profile')
-      if (saved) return JSON.parse(saved) as Record<string, string>
-    } catch { /* ignore */ }
-    return null
-  })()
+  const [profile] = useLocalStorage('lifeline_profile', {
+    name: '',
+    email: '',
+    phone: '',
+    dob: '',
+    gender: '',
+    height: '',
+    weight: '',
+    bio: '',
+  })
 
   const name = profile?.name || ''
   

@@ -1,43 +1,35 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { User, Calendar, Mail, Phone, UserCircle, Activity } from 'lucide-react'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 export default function Profile() {
-  const [formData, setFormData] = useState(() => {
-    const saved = localStorage.getItem('lifeline_profile')
-    return saved ? JSON.parse(saved) : {
-      name: '',
-      email: '',
-      phone: '',
-      dob: '',
-      gender: '',
-      height: '',
-      weight: '',
-      bio: '',
-    }
+  const [formData, setFormData] = useLocalStorage('lifeline_profile', {
+    name: '',
+    email: '',
+    phone: '',
+    dob: '',
+    gender: '',
+    height: '',
+    weight: '',
+    bio: '',
   })
   
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const latestFormData = useRef(formData)
+  const isFirstRender = useRef(true)
 
-  // Keep ref in sync so beforeunload always has the latest data
+  // Auto-save UI indicator (since useLocalStorage saves instantly, we just mock the UI feedback)
   useEffect(() => {
-    latestFormData.current = formData
-  }, [formData])
-
-  const persistNow = useCallback((data: typeof formData) => {
-    localStorage.setItem('lifeline_profile', JSON.stringify(data))
-  }, [])
-
-  // Auto-save with 600ms debounce on every field change
-  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     setIsSaved(false)
     setIsSaving(true)
 
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      persistNow(formData)
       setIsSaving(false)
       setIsSaved(true)
       const clearTimer = setTimeout(() => setIsSaved(false), 2500)
@@ -47,16 +39,7 @@ export default function Profile() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [formData, persistNow])
-
-  // Safety net: flush immediately if the tab/window is closed
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      persistNow(latestFormData.current)
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [persistNow])
+  }, [formData])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -66,7 +49,6 @@ export default function Profile() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    persistNow(formData)
     setIsSaving(false)
     setIsSaved(true)
     setTimeout(() => setIsSaved(false), 2500)
